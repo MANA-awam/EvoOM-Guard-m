@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Run the test suite
+        run: python -m pytest tests -q
+      - name: Smoke-test the CLI
+        run: |
+          evo-guard --version
+          # A cheat patch that edits a test must be REJECTED (exit 1).
+          mkdir -p /tmp/demo/pkg /tmp/demo/tests
+          printf 'def dbl(x):\n    return x + x + 1\n' > /tmp/demo/pkg/m.py
+          printf 'from pkg.m import dbl\n\ndef test_dbl():\n    assert dbl(3) == 6\n' > /tmp/demo/tests/test_m.py
+          printf '<<<FILE: tests/test_m.py>>>\ndef test_dbl():\n    assert True\n<<<END FILE>>>\n' > /tmp/cheat.txt
+          if evo-guard /tmp/demo --patch /tmp/cheat.txt; then
+            echo "cheat patch was NOT rejected" && exit 1
+          else
+            echo "cheat patch correctly rejected"
+          fi

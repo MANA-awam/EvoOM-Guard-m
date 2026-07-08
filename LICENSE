@@ -1,0 +1,38 @@
+EvoOM Guard Source-Available License, version 1.0
+
+Copyright (c) 2026 Mana Alharbi (مانع الحربي). All rights reserved.
+
+1. Grant. Subject to the terms below, the copyright holder grants you a
+   free, worldwide, non-exclusive, non-transferable license to:
+
+   a. use, run, and reproduce this software, including for commercial
+      purposes, within your own projects, systems, and CI pipelines
+      (including hosted CI services acting on your behalf);
+   b. read and study the source code;
+   c. modify the software for your own internal use only.
+
+2. Restrictions. You may NOT, without prior written permission from the
+   copyright holder:
+
+   a. redistribute, sublicense, publish, or make the software (or a
+      modified version of it) available to any third party, whether for a
+      fee or free of charge;
+   b. sell the software, or offer it — or a service whose primary value is
+      this software's functionality — to third parties (including as a
+      hosted or managed service);
+   c. remove or alter copyright, authorship, or license notices.
+
+3. Contributions. By submitting a contribution (e.g. a pull request) you
+   grant the copyright holder a perpetual, worldwide, irrevocable license
+   to use, modify, relicense, and distribute the contribution as part of
+   this software.
+
+4. No warranty. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES,
+   OR OTHER LIABILITY ARISING FROM THE USE OF THE SOFTWARE.
+
+5. Termination. This license terminates automatically if you breach it.
+   Rights already lawfully exercised under section 1 by other parties are
+   not affected by your termination.

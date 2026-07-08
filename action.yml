@@ -1,0 +1,94 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Copyright (c) 2026 Mana Alharbi (مانع الحربي). All rights reserved.
+# Source-available — see LICENSE for permitted use.
+# ─────────────────────────────────────────────────────────────────────────────
+name: "EvoOM Guard"
+description: >
+  AI patch verification gate. Verifies a PR's source changes against the repo's
+  own test suite and REJECTS any edit to the tests or their configuration — so an
+  agent cannot pass by gaming the harness. The verdict is read from a judge-owned
+  JUnit report (not stdout), so a forged "N passed" cannot fool it.
+
+inputs:
+  base-ref:
+    description: "Git ref to diff against (default: the PR base SHA, else HEAD^)."
+    required: false
+    default: ""
+  test-command:
+    description: "Test command run inside the repo copy (default: pytest -q)."
+    required: false
+    default: ""
+  protected:
+    description: "Extra space-separated globs the patch may not modify."
+    required: false
+    default: ""
+  comment:
+    description: "Post the report as a PR comment (needs pull-requests: write)."
+    required: false
+    default: "true"
+  fail-on:
+    description: "Verdicts that fail the step: 'any-non-pass' (default) or 'rejected-only'."
+    required: false
+    default: "any-non-pass"
+
+outputs:
+  verdict:
+    description: "PASS | REJECTED | FAIL | ERROR"
+    value: ${{ steps.guard.outputs.verdict }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install EvoOM Guard
+      shell: bash
+      run: pip install -q "${{ github.action_path }}"
+
+    - name: Run EvoOM Guard
+      id: guard
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        set -e
+        # Resolve the base to diff against: explicit input, else the PR base, else HEAD^.
+        BASE="${{ inputs.base-ref }}"
+        if [ -z "$BASE" ]; then BASE="${{ github.event.pull_request.base.sha }}"; fi
+        if [ -z "$BASE" ]; then BASE="$(git rev-parse HEAD^ 2>/dev/null || git rev-parse HEAD)"; fi
+        echo "Diffing against base: $BASE"
+        git fetch --no-tags --depth=1 origin "$BASE" 2>/dev/null || true
+        # The recommended path: pipe the diff; Guard reverse-applies it to the head
+        # checkout (this working dir) — no second checkout or worktree.
+        ARGS=(--diff - --report "$RUNNER_TEMP/guard-report.md" --json "$RUNNER_TEMP/guard.json")
+        if [ -n "${{ inputs.test-command }}" ]; then ARGS+=(--test-command "${{ inputs.test-command }}"); fi
+        if [ -n "${{ inputs.protected }}" ]; then ARGS+=(--protected ${{ inputs.protected }}); fi
+        set +e
+        git diff "$BASE...HEAD" | evo-guard "${ARGS[@]}"
+        GUARD_CODE=$?
+        set -e
+        VERDICT=$(python -c "import json;print(json.load(open('$RUNNER_TEMP/guard.json'))['verdict'])")
+        echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
+        cat "$RUNNER_TEMP/guard-report.md" >> "$GITHUB_STEP_SUMMARY"
+        if [ "${{ inputs.fail-on }}" = "rejected-only" ]; then
+          [ "$VERDICT" = "REJECTED" ] && exit 1 || exit 0
+        fi
+        exit $GUARD_CODE
+
+    - name: Comment on the PR
+      if: ${{ always() && inputs.comment == 'true' && github.event_name == 'pull_request' }}
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const p = process.env.RUNNER_TEMP + '/guard-report.md';
+          if (!fs.existsSync(p)) return;
+          const body = fs.readFileSync(p, 'utf8');
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body,
+          });

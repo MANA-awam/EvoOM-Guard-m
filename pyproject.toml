@@ -1,0 +1,37 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Copyright (c) 2026 Mana Alharbi (مانع الحربي). All rights reserved.
+# Source-available — see LICENSE for permitted use.
+# ─────────────────────────────────────────────────────────────────────────────
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evoom-guard"
+version = "0.1.0"
+description = "AI patch verification gate: verifies a patch against the repo's own tests and rejects any edit to the tests or their configuration. The verdict is read from a judge-owned report, never from stdout."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Mana Alharbi (مانع الحربي)" }]
+keywords = ["ai", "agents", "ci", "testing", "reward-hacking", "patch", "verification"]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: Other/Proprietary License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = []  # standard library only
+
+[project.urls]
+Repository = "https://github.com/EvoRiseKsa/EvoOM-Guard-m"
+Issues = "https://github.com/EvoRiseKsa/EvoOM-Guard-m/issues"
+
+[project.scripts]
+evo-guard = "evoom_guard.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+include = ["evoom_guard*"]
