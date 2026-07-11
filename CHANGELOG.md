@@ -9,6 +9,66 @@ All notable changes to EvoOM Guard are recorded here. The format is loosely base
 on [Keep a Changelog](https://keepachangelog.com/), and the project follows
 semantic versioning (`vMAJOR.MINOR.PATCH`).
 
+## [3.2.3] — 2026-07-11
+
+A correctness + evidence pass driven by an external launch review and a live
+self-hosting run (Guard judged by Guard).
+
+### Fixed
+- **Marker-collision truncation (dirs/diff path).** A target file whose CONTENT
+  legitimately contains a literal `<<<END FILE>>>` line (Guard's own source
+  does) was silently truncated by the serialize→re-parse round-trip, turning an
+  honest change into a bogus FAIL. The dirs/diff path now threads a structured
+  `{path: content}` candidate end-to-end (`blocks_from_dirs` →
+  `guard(file_blocks=…)` → verifier/black-box/coverage appliers) and never
+  re-parses marker text. Found by running Guard on its own repository; pinned by
+  `tests/test_marker_collision.py`.
+- **Dangling-symlink crash.** A repo containing a dangling symlink (commonly a
+  link into an ignored `.venv/`/`node_modules/`) crashed the judge inside
+  `shutil.copytree` instead of producing a verdict. The throwaway copy now
+  preserves symlinks as symlinks (`copy_repo_tree`), which also stops host file
+  content from being materialized into the tree that container isolation mounts.
+  Candidate writes can never follow a symlink out of the copy: a symlinked
+  target is replaced, and a write through a symlinked parent directory is
+  refused (`tests/test_copy_fidelity.py`).
+- **Deletion-only rejections are now pre-gated.** A candidate whose only
+  violation was a protected *deletion* used to run the suite once before the
+  verdict flipped to REJECTED, leaving `test_command_ran: true` on a verdict
+  documented as pre-execution. The suite is now skipped whenever the diff alone
+  decides the outcome.
+- Docs version drift: every taught install/pin now points at the current
+  release, enforced by a new CI test (`tests/test_docs_version.py`); the stale
+  `examples/evoguard.yml` pin (v3.1.0) and `docs/*` pins (v3.2.1) were bumped.
+- `docs/GUARD.md` no longer claims deletions are ungated (they are gated since
+  schema 1.1); its verdict table now matches the README's complete ERROR/
+  REJECTED semantics; stale 3-runner claims in PROOFS/REWARD_HACKING_CATALOG and
+  the 4-runner table in ADOPTION were updated to the real eight-runner matrix.
+
+### Added
+- **Live benchmark harness** (`benchmarks/run_live.py`): 16 labelled cases built
+  as real repos and judged by real `guard()` runs — zero missed hacks, one
+  documented-by-design false positive, timing included; published results in
+  `benchmarks/results.jsonl` + `benchmarks/README.md`, kept honest by CI tests
+  that re-run the corpus live and compare.
+- **Self-hosting proof** in `docs/PROOFS.md`: Guard judged its own development
+  diff (REJECTED pre-gate → PASS 378/378 under a reviewed `--allow`), plus the
+  built `.pyz` enforcing the same gate.
+- Marketplace action: fail-fast base diagnostics with named causes
+  (`base_ref_unavailable`, `base_diff_failed`) BEFORE the guard runs, a
+  `::warning::` on a failed best-effort fetch instead of a silenced error, and
+  tolerant verdict/report reads on crash paths.
+- `restore_judge_package_json` regression tests for `pretest`/`posttest`,
+  `test:*` variants, and every embedded runner key (vitest/mocha/ava/c8/nyc).
+
+### Changed (docs)
+- REJECTED is consistently framed as a **policy trip** (a legitimate config/
+  dependency change trips it too — resolve with a reviewed `--allow`), not
+  proof of cheating; `fail-on: rejected-only` now carries an explicit warning
+  that FAIL/TAMPERED/ERROR leave the check green.
+- `docs/START_HERE.md` names the three usage profiles (Basic integrity gate /
+  External behavior gate / Isolated external gate); README's demo-repo wording
+  is now "external-repository demonstration", not "independent".
+
 ## [3.2.2] — 2026-07-11
 
 A supply-chain and cross-platform hardening release.
