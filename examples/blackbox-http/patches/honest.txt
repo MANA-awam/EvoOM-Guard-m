@@ -1,0 +1,7 @@
+<<<FILE: app/__init__.py>>>
+"""A tiny HTTP service under judgment: /add?a=..&b=.. returns {"result": a+b}."""
+
+
+def add(a: float, b: float) -> float:
+    return a + b
+<<<END FILE>>>

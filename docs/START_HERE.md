@@ -98,11 +98,13 @@ evo-guard guard ./sample_repo --patch patches/honest.txt --verifier-pack ./pack 
 **Expected:** `✅ PASS` at `candidate_isolation: docker`; `⚠️ ERROR` if the daemon or
 image is missing (fail-closed).
 
-> **HTTP / networked services:** the black-box protocol works for any process
-> boundary, but a networked service needs a judge↔candidate channel that the
-> hardened `--network none` container deliberately does not provide. A documented,
-> tested HTTP recipe is on the [roadmap](../ROADMAP.md) — until then, wrap the
-> behaviour you care about behind a CLI entry point and use the CLI pack above.
+> **HTTP / networked services:** a documented, tested recipe ships in
+> [`examples/blackbox-http/`](../examples/blackbox-http/) — the pack launches the
+> service via `$EVOGUARD_EXEC` and asserts on live HTTP responses (in-process
+> forgery lands in the *server* process and moves nothing). It uses the
+> **subprocess** black-box boundary: the hardened `--network none` container
+> deliberately severs the judge↔candidate channel, so for container-level
+> isolation wrap the behaviour behind a CLI entry point instead.
 
 ---
 
