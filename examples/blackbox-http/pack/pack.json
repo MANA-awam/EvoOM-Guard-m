@@ -1,0 +1,7 @@
+{
+  "id": "calc-http-protocol",
+  "version": "1.0.0",
+  "description": "External HTTP behaviour of the calculator service (/add)",
+  "target_type": "http-service",
+  "protocol": "calc-http-v1"
+}
