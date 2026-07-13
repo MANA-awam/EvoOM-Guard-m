@@ -102,9 +102,10 @@ class DanglingSymlinkTests(unittest.TestCase):
 
     @unittest.skipUnless(HAS_PYTEST, "pytest not installed")
     def test_guard_verdicts_instead_of_crashing_on_a_dangling_symlink(self) -> None:
-        os.symlink("/nonexistent/target", os.path.join(self.root, "dangling"))
+        missing = os.path.join(self.root, "missing-target")
+        os.symlink(missing, os.path.join(self.root, "dangling"))
         r = guard(self.root, HONEST, test_command=TEST_CMD, timeout=120)
-        self.assertEqual(r.verdict, PASS, r.reason)
+        self.assertEqual(r.verdict, PASS, f"{r.reason}\n{r.diagnostics}")
 
 
 @unittest.skipUnless(HAS_SYMLINK, "platform cannot create symlinks")
@@ -126,7 +127,9 @@ class SymlinkFidelityTests(unittest.TestCase):
                 copy_repo_tree(root, dst)
                 copied = os.path.join(dst, "link_to_host")
                 self.assertTrue(os.path.islink(copied))
-                self.assertEqual(os.readlink(copied), secret)
+                # Windows may expose the same absolute target with a ``\\?\``
+                # prefix. Object identity is the contract; spelling is not.
+                self.assertTrue(os.path.samefile(copied, secret))
             finally:
                 shutil.rmtree(os.path.dirname(dst), ignore_errors=True)
         finally:
