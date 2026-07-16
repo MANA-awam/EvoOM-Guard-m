@@ -11,26 +11,38 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License: Source-available](https://img.shields.io/badge/license-source--available-lightgrey)](LICENSE)
 
-**Independent, evidence-bound verification for untrusted software changes — with
+**Policy- and evidence-bound verification for untrusted software changes — with
 AI-generated patches as the primary use case.**
 
 Guard asks one deliberately narrow question: did this change satisfy the selected
 judge without manipulating the evidence used to decide? It does not infer who
-wrote the change, and a `PASS` is never a claim of complete software correctness.
+wrote the change. A `PASS` means only that the change passed the recorded judge,
+policy, and delivered-assurance boundary; it is never a proof of complete software
+correctness or security.
 
 > **New here? → [`docs/START_HERE.md`](docs/START_HERE.md)** picks your path in 30
 > seconds (Basic Guard · Black-box CLI · + container isolation), with a decision
 > table and a complete runnable example. Start there instead of reading this whole page.
 >
-> **See it run on an external target repo → [`evoom-guard-demo`](https://github.com/EvoRiseKsa/evoom-guard-demo)**:
+> **See a frozen reproducible proof snapshot → [`evoom-guard-demo`](https://github.com/EvoRiseKsa/evoom-guard-demo)**:
 > an honest fix passes, test tampering is rejected, a fake `9999 passed` on stdout
-> still fails, and black-box report forgery is caught — all with the published release.
+> still fails, and black-box report forgery is caught. That repository records a
+> v3.5.2 scenario; it is not an independent assessment and does not validate the
+> v3.6.0 Trusted Finalizer.
 >
 > **See it judge a real historical bug → [`docs/CASE-STUDY.md`](docs/CASE-STUDY.md)**:
 > charset-normalizer's real `TypeError`-on-comparison bug (≤3.3.2, fixed upstream in
 > 3.4.0) — the genuine fix earns `PASS` with `repair_effect: demonstrated`, the
 > test-silencing variant is `REJECTED` before a single test runs, and the do-nothing
 > patch `FAIL`s. Reproducible from hash-pinned PyPI sdists.
+
+> **Trusted Finalizer status.** v3.6.0 introduced the split, higher-assurance
+> reference deployment; v3.6.1 repairs its unprivileged judge runtime. It is not
+> an enabled merge gate in this repository. Install it in a protected consumer
+> repository and complete the documented Round 1 operational audit before making
+> it a required check. Read
+> [`docs/TRUSTED_FINALIZER.md`](docs/TRUSTED_FINALIZER.md) and
+> [`docs/ASSURANCE.md`](docs/ASSURANCE.md) before relying on it.
 
 AI coding agents have learned an ugly trick: when they can't fix the code, they
 "fix" the tests. Delete the failing assertion, add a pytest `addopts = "-k
@@ -151,7 +163,7 @@ the workflow fail closed.
 ## Try it in two minutes
 
 ```bash
-pip install "git+https://github.com/EvoRiseKsa/EvoOM-Guard-m@v3.6.0"   # a released tag; pin a SHA for strictest CI
+pip install "git+https://github.com/EvoRiseKsa/EvoOM-Guard-m@v3.6.1"   # a released tag; pin a SHA for strictest CI
 
 # From the branch you want checked (the diff is reverse-applied to a throwaway
 # copy — your working tree is never modified):
@@ -206,7 +218,7 @@ permissions:
 steps:
   - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
     with: { fetch-depth: 0 }          # Guard needs the base commit to diff
-  - uses: EvoRiseKsa/EvoOM-Guard-m@v3.6.0   # a release tag (pin a SHA for strictest CI)
+  - uses: EvoRiseKsa/EvoOM-Guard-m@v3.6.1   # a release tag (pin a SHA for strictest CI)
     with:
       comment: "true"                 # sticky comment on same-repo PRs; forks keep the job summary
       fail-on: "any-non-pass"          # required on pull_request runs
