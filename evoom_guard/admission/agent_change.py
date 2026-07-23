@@ -1050,14 +1050,22 @@ def seal_agent_change_finalizer_bundle(
 
     source = dict(expected_finalizer_source)
     context = dict(expected_context)
+    base_sha = _git_sha(source.get("base_sha"), label="expected finalizer source.base_sha")
+    head_sha = _git_sha(source.get("head_sha"), label="expected finalizer source.head_sha")
+    base_tree_sha = _git_sha(
+        context.get("base_tree_sha"), label="expected finalizer context.base_tree_sha"
+    )
+    head_tree_sha = _git_sha(
+        context.get("head_tree_sha"), label="expected finalizer context.head_tree_sha"
+    )
     try:
         bindings = derive_agent_change_bindings(
             base_repo=base_repo,
             head_repo=head_repo,
-            base_sha=source.get("base_sha"),
-            head_sha=source.get("head_sha"),
-            base_tree_sha=context.get("base_tree_sha"),
-            head_tree_sha=context.get("head_tree_sha"),
+            base_sha=base_sha,
+            head_sha=head_sha,
+            base_tree_sha=base_tree_sha,
+            head_tree_sha=head_tree_sha,
             base_is_bare=base_is_bare,
             head_is_bare=head_is_bare,
             git_executable=git_executable,
